@@ -1,4 +1,8 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'status_provider.dart';
 import 'updates_page.dart';
 import 'chats_tab.dart';
 
@@ -23,9 +27,12 @@ class _DashboardPageState extends State<DashboardPage> {
   ];
 
   void _onItemTapped(int index) {
+    final statusProvider = Provider.of<StatusProvider>(context, listen: false);
     setState(() {
       _selectedIndex = index;
+      log('Viewed status images count: ${statusProvider.viewedStatusImages.length}');
     });
+    // Print the length of viewedStatusImages when a tab is tapped
   }
 
   @override
@@ -42,7 +49,8 @@ class _DashboardPageState extends State<DashboardPage> {
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.chat), label: 'Chats'),
           BottomNavigationBarItem(icon: Icon(Icons.update), label: 'Updates'),
-          BottomNavigationBarItem(icon: Icon(Icons.groups), label: 'Communities'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.groups), label: 'Communities'),
           BottomNavigationBarItem(icon: Icon(Icons.call), label: 'Calls'),
         ],
         currentIndex: _selectedIndex,
