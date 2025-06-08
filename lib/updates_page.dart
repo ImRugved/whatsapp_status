@@ -214,47 +214,58 @@ class UpdatesPage extends StatelessWidget {
   }
 }
 
-// Custom painter for segmented border (WhatsApp-like status borders)
+// This painter draws the green/grey segmented border around status avatars,
+// similar to how WhatsApp shows them.
 class StatusBorderPainter extends CustomPainter {
-  final int segments;
-  final bool seen;
+  final int segments; // How many images are in the status (determines number of border segments).
+  final bool seen; // True if the user has already viewed this status (border becomes grey).
 
   StatusBorderPainter({required this.segments, required this.seen});
 
   @override
+  // This is where the actual drawing happens.
   void paint(Canvas canvas, Size size) {
-    if (segments == 0) return; // Don't draw anything if no segments
+    if (segments == 0) return; // If there are no images, don't draw any border.
 
+    // Setup the brush (Paint) we'll use for drawing the border.
     final paint = Paint()
-      ..color = seen ? Colors.grey.shade400 : Colors.green
-      ..strokeWidth = 3.0
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
+      ..color = seen ? Colors.grey.shade400 : Colors.green // Green for new, grey for seen.
+      ..strokeWidth = 3.0 // How thick the border line is.
+      ..style = PaintingStyle.stroke // We want an outline, not a filled shape.
+      ..strokeCap = StrokeCap.round; // Makes the ends of the border segments rounded.
 
+    // Figure out the center and radius for our circle/arcs.
     final center = Offset(size.width / 2, size.height / 2);
-    final radius = (size.width - paint.strokeWidth) / 2;
+    final radius = (size.width - paint.strokeWidth) / 2; // Adjust radius for stroke width so border is fully visible.
 
+    // If there's only one image, draw a complete, unbroken circle.
     if (segments == 1) {
       // Draw complete circle for single image
-      canvas.drawCircle(center, radius, paint);
-    } else {
+      canvas.drawCircle(center, radius, paint); // Simple full circle.
+    } else { // If there are multiple images, draw a segmented border.
       // Draw segmented arcs for multiple images
+      // Calculate the size of the gap between segments and the size of each segment.
       final double gapAngle =
-          0.25; // Gap between segments in radians (~5.7 degrees)
-      final double segmentAngle =
-          (2 * 3.141592653589793 - (segments * gapAngle)) / segments;
+          0.25; // This is the small space between each green/grey arc.
+      final double segmentAngle; // How long each arc segment will be.
+      segmentAngle = (2 * 3.141592653589793 - (segments * gapAngle)) / segments; // Total circle (2*pi) minus all gaps, divided by number of segments.
 
+      // Draw each arc segment one by one.
       for (int i = 0; i < segments; i++) {
+        // Calculate where this segment starts. We start from the top (-pi/2 radians).
         final double startAngle = -3.141592653589793 / 2 +
-            i * (segmentAngle + gapAngle); // Start from top
+            i * (segmentAngle + gapAngle); // Each segment starts after the previous one plus a gap.
 
+        // Arcs are drawn within a bounding rectangle (a square, in this case, for a circle).
         final rect = Rect.fromCircle(center: center, radius: radius);
-        canvas.drawArc(rect, startAngle, segmentAngle, false, paint);
+        canvas.drawArc(rect, startAngle, segmentAngle, false, paint); // Draw the arc for this segment.
       }
     }
   }
 
   @override
+  // Tells Flutter when to redraw this border.
+  // It should redraw if the number of segments changes or if its seen status changes.
   bool shouldRepaint(covariant CustomPainter oldDelegate) {
     if (oldDelegate is StatusBorderPainter) {
       return oldDelegate.segments != segments || oldDelegate.seen != seen;
